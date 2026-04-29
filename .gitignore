@@ -1,0 +1,8 @@
+*nextflow.log*
+/results/*
+/work/*
+/data/*
+.nextflow/*
+/db/*
+.singularity_cache/*
+*.tmp
