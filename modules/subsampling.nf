@@ -47,7 +47,7 @@ process SUBSAMPLING {
     # -----------------------------
     # 5. Decision logic
     # -----------------------------
-    if [ \$(awk -v c="\$cov" 'BEGIN {print (c > 100 ? 1 : 0)}') -eq 1 ]; then
+    if [ \$(awk -v c="\$cov" -v t="${params.target_cov}" 'BEGIN {print (c > t ? 1 : 0)}') -eq 1 ]; then
         echo "High coverage -> Subsampling"
 
         filtlong --target_bases \$(( ${params.target_cov} * ${params.genome_size} )) ${reads} > tmp.fastq
