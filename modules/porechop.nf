@@ -1,23 +1,27 @@
 process PORECHOP {
-
-    tag "${sample_id}"
+    // Usamos meta.id para identificar el proceso en la consola
+    tag "${meta.id}"
 
     publishDir "${projectDir}/results/porechop", mode: 'copy'
 
     label 'process_high'
 
     input:
-    tuple val(sample_id), path(reads)
+    // Recibe la tupla [meta, reads]
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}.porechop.fastq.gz")
+    // Mantiene el objeto meta para que llegue a SEQKIT y SUBSAMPLING
+    tuple val(meta), path("${meta.id}.porechop.fastq.gz")
 
     script:
     """
-    echo "Running Porechop for ${sample_id}"
+    echo "Running Porechop for ${meta.id}"
 
     porechop \
         -i ${reads} \
-        -o ${sample_id}.porechop.fastq.gz
+        -o ${meta.id}.porechop.fastq.gz \
+        --threads ${task.cpus}
+        
     """
 }

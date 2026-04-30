@@ -1,12 +1,14 @@
 process SEQKIT_STATS {
-    tag "${sample_id}"
+    tag "${meta.id}"
     label 'process_low'
 
     input:
-    tuple val(sample_id), path(reads)
+    // Recibe la tupla con el objeto meta y las reads
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sample_id), path(reads), path("stats.txt")
+    // Emite la tupla completa: meta, las reads originales y el archivo de stats
+    tuple val(meta), path(reads), path("stats.txt")
 
     script:
     """

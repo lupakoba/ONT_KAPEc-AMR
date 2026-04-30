@@ -1,19 +1,22 @@
 process CAT_READS {
-
-    tag "Concatenating ${sample_id}"
+    // Usamos meta.id para que el log de Nextflow sea claro
+    tag "Concatenating ${meta.id}"
 
     publishDir "${projectDir}/results/cat_reads", mode: 'copy'
 
     label 'process_low'
 
     input:
-    tuple val(sample_id), path(reads)
+    // Aquí recibimos el objeto meta completo y la lista de archivos
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}_combined.fastq.gz")
+    // Emitimos el objeto meta intacto y el archivo combinado
+    tuple val(meta), path("${meta.id}_combined.fastq.gz")
 
     script:
     """
-    cat ${reads} > ${sample_id}_combined.fastq.gz
+    # Como 'reads' es una lista de archivos de la carpeta, cat los une todos
+    cat ${reads} > ${meta.id}_combined.fastq.gz
     """
 }

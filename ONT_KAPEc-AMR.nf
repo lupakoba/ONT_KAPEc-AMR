@@ -22,9 +22,9 @@ if (params.help) {
 checkInputParams()
 
 log.info """
-Pipeline mode:     ${params.mode}
-Profile:           ${workflow.profile}
-Input:             ${params.input}
+Pipeline mode:      ${params.mode}
+Profile:            ${workflow.profile}
+Samplesheet:        ${params.samplesheet}
 """.stripIndent()
 
 // ============================================================
@@ -49,13 +49,29 @@ def workflows_map = [
 
 workflow {
 
-    reads_ch = Channel
-        .fromPath("${params.input}/**/*.fastq.gz")
-        .map { file ->
-            def sample = file.parent.name
-            tuple(sample, file)
+    reads_ch = Channel.fromPath(params.samplesheet)
+    .splitCsv(header: true)
+    .map { row ->
+        // Construimos la ruta: data/barcode01 (por ejemplo)
+        def folder_path = "${params.reads_dir}/${row.folder_path}"
+        def folder = file(folder_path)
+        
+        if( !folder.isDirectory() ) {
+            error "ERROR: No se encuentra la carpeta en ${folder_path}"
         }
-        .groupTuple()
+
+        def fastq_files = file("${folder_path}/*.fastq.gz")
+        
+        if( fastq_files.size() == 0 ) {
+            error "ERROR: No hay archivos .fastq.gz en ${folder_path}"
+        }
+
+        // Retornamos el objeto meta y la lista de archivos
+        return [ [id: row.sample, gsize: row.gsize], fastq_files ]
+    }
+
+
+
 
     if (params.mode == 'assembly') {
         assembly(reads_ch)
@@ -99,9 +115,9 @@ def checkInputParams() {
     boolean fatal_error = false
 
     // INPUT
-    if (!params.input || !file(params.input).exists()) {
-        log.warn("You need to provide a valid input directory with --input")
-        fatal_error = true
+    if (!params.samplesheet || !file(params.samplesheet).exists()) {
+    log.warn("ERROR: CSV file not found. You must provide a valid samplesheet.csv using --samplesheet.")
+    fatal_error = true
     }
 
     // MODE
