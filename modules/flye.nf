@@ -12,13 +12,15 @@ process FLYE {
     path "${meta.id}_flye_info.txt"          , emit: info
 
     script:
+    // Definimos si usamos nano-hq basado en la calidad esperada de R10 SUP
     """
-    flye --nano-raw ${reads} \
-        --out-dir ${meta.id}_flye \
-        --genome-size ${meta.gsize} \
-        --threads ${task.cpus}
+    flye --nano-hq ${reads} \\
+        --out-dir ${meta.id}_flye \\
+        --genome-size ${meta.gsize} \\
+        --threads ${task.cpus} \\
+        --iterations 3
 
-    # Renombramos el output principal para que sea fácil de identificar
+    # Renombramos el output principal
     mv ${meta.id}_flye/assembly.fasta ${meta.id}_flye.fasta
     mv ${meta.id}_flye/assembly_info.txt ${meta.id}_flye_info.txt
     """

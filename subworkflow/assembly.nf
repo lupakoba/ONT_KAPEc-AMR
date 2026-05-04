@@ -15,7 +15,17 @@ include { RACON as RACON_2 }            from '../modules/racon'
 include { MEDAKA }                      from '../modules/medaka'
 include { DNAAPLER }                    from '../modules/dnaapler'
 include { QUAST }                       from '../modules/quast'
-
+include { MLST }                        from '../modules/mlst'
+include { CHECKM2 }                     from '../modules/checkm2'
+include { BAKTA }                       from '../modules/bakta'
+include { AMRFINDERPLUS }               from '../modules/amrfinder'
+include { ABRICATE_DB }                 from '../modules/abricate_db'
+include { ABRICATE_VF }                 from '../modules/virulence'
+include { MOB_RECON }                   from '../modules/mobrecon'
+include { KAPTIVE_DB }                  from '../modules/kaptive_db'
+include { KAPTIVE }                     from '../modules/kaptive'
+include { ECTYPER }                     from '../modules/ectyper'
+include { PASTY }                       from '../modules/pasty'
 
 
 workflow assembly {
@@ -79,16 +89,68 @@ workflow assembly {
     medaka_in = racon2_out.polished.join(subs_branch)
     medaka_out = MEDAKA(medaka_in)
 
-    // 5. DNAAPLER (Re-orientación y finalización)
-    final_genome = DNAAPLER(medaka_out.polished)
+    // ============================================================
+    // 5. DNAAPLER -> Canal de ensambles finales
+    // ============================================================
+    // Ahora ch_final_assemblies es un canal simple: [meta, fasta]
+    ch_final_assemblies = DNAAPLER(medaka_out.polished).reoriented 
 
-    // 2. Reporte agrupado
-    // .map{ it[1] } extrae el archivo .fasta ignorando el meta
-    // .collect() junta todos los .fasta en una sola lista/canal
-    all_fastas_ch = final_genome.reoriented.map{ it[1] }.collect()
+    // QUAST: Recolecta todos los fastas para un solo reporte
+    ch_final_assemblies
+        .map { it[1] }
+        .collect()
+        .set { ch_quast_input }
     
-    QUAST(all_fastas_ch)
+    QUAST(ch_quast_input)
 
+    // ============================================================
+    // MLST Y UNIÓN (Ahora mucho más limpio)
+    // ============================================================
+    // MLST emite ahora solo: [meta, tsv]
+    ch_mlst_results = MLST(ch_final_assemblies)
 
+    // El join ahora funciona directo porque ambos canales tienen 1 solo output
+    // Resultado: [meta, fasta, tsv]
+    ch_joined_data = ch_final_assemblies.join(ch_mlst_results)
+
+    // ============================================================
+    // KAPTIVE_DB
+    // ============================================================
+    // Quitamos el .out.db_files ya que el proceso emite el canal directamente
+    ch_kaptive_db_raw = KAPTIVE_DB()
+    
+    // Usamos collect para que la DB esté disponible para todas las muestras
+    ch_kaptive_db = ch_kaptive_db_raw.collect()
+
+    // Llamada a KAPTIVE (2 argumentos: datos de muestra y DB)
+    KAPTIVE(ch_joined_data, ch_kaptive_db)
+
+    // ============================================================
+    // AMRFINDERPLUS / ECTYPER / PASTY
+    // ============================================================
+    // Estos procesos suelen recibir la tupla de 3 elementos [meta, fasta, tsv]
+    AMRFINDERPLUS(ch_joined_data)
+    ECTYPER(ch_joined_data)
+    PASTY(ch_joined_data)
+
+    // ============================================================
+    // MOB RECON Y ABRICATE
+    // ============================================================
+    // MOB_RECON solo necesita el ensamble
+    MOB_RECON(ch_final_assemblies)
+
+    // ABRICATE necesita el ensamble y su DB
+    // ============================================================
+    // ABRICATE_VF
+    // ============================================================
+    ch_abricate_db = ABRICATE_DB().collect() // Aseguramos que sea un solo objeto
+
+    // Combinamos el ensamble con la DB en un solo canal (un solo argumento)
+    ch_final_assemblies
+        .combine(ch_abricate_db)
+        .set { ch_abricate_input }
+
+    // LLAMADA CORREGIDA: Ahora es solo 1 argumento (la tupla combinada)
+    ABRICATE_VF(ch_abricate_input)
 
 }
