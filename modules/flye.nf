@@ -2,7 +2,7 @@ process FLYE {
     tag "${meta.id}"
     label 'process_high'
         
-    publishDir "${params.outdir}/assembly", mode: 'copy'
+    publishDir "${projectDir}/results/flye", mode: 'copy'
 
     input:
     tuple val(meta), path(reads)

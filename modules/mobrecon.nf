@@ -4,7 +4,7 @@ process MOB_RECON {
 
     tag "Plasmid inference for genome ${meta.id}"
 
-    publishDir "${params.outdir}/mob_recon", mode: 'copy'
+    publishDir "${projectDir}/results/mob_recon", mode: 'copy'
 
     label 'process_medium'
 

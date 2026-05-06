@@ -6,7 +6,7 @@ process PASTY {
 
     label 'process_low'
 
-    publishDir "${params.outdir}/pasty", mode: 'copy'
+    publishDir "${projectDir}/results/pasty", mode: 'copy'
 
     input:
     tuple val(meta), path(assembly), path(mlst_tsv)

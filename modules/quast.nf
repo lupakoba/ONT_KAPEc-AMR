@@ -3,7 +3,7 @@ process QUAST {
     tag "All Samples"
     
     // Guardamos todo en una sola carpeta de resultados
-    publishDir "${params.outdir}/quast_summary", mode: 'copy'
+    publishDir "${projectDir}/results/quast_summary", mode: 'copy'
 
     input:
     path(all_fastas) // Recibe la lista de genomas

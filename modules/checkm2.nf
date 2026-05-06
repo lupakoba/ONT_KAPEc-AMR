@@ -6,7 +6,7 @@ process CHECKM2 {
         
     label 'process_high'
 
-    publishDir "${params.outdir}/checkm2", mode: 'copy'
+    publishDir "${projectDir}/results/checkm2", mode: 'copy'
 
     input:
     tuple val(sample_id), path(fasta), path(db_file)

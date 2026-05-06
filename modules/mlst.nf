@@ -6,7 +6,7 @@ process MLST {
 
     label 'process_low'
 
-    publishDir "${params.outdir}/mlst", mode: 'copy'
+    publishDir "${projectDir}/results/mlst", mode: 'copy'
 
     input:
     tuple val(meta), path(fasta)

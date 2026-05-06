@@ -2,8 +2,7 @@ process KAPTIVE {
     tag "Capsular Loci inference for genome ${meta.id}"
     label 'process_medium'
 
-    container "${params.kaptive_container}"
-    publishDir "${params.outdir}/kaptive", mode: 'copy'
+    publishDir "${projectDir}/results/kaptive", mode: 'copy'
 
     input:
     tuple val(meta), path(assembly), path(mlst_tsv)

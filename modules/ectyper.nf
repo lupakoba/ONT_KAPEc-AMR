@@ -6,7 +6,7 @@ process ECTYPER {
 
     label 'process_low'
 
-    publishDir "${params.outdir}/ectyper", mode: 'copy'
+    publishDir "${projectDir}/results/ectyper", mode: 'copy'
 
     input:
     tuple val(meta), path(assembly), path(mlst_tsv)

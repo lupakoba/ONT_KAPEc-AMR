@@ -2,7 +2,7 @@ process ABRICATE_VF {
 
     tag "Prediction of virulence factors for genome ${meta.id}"
 
-    publishDir "${params.outdir}/abricate_vfdb", mode: 'copy'
+    publishDir "${projectDir}/results/abricate_vfdb", mode: 'copy'
 
     label 'process_medium'
 

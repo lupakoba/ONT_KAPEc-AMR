@@ -2,7 +2,7 @@ process DNAAPLER {
     tag "${meta.id}"
     label 'process_medium'
     
-    publishDir "${params.outdir}/reoriented", mode: 'copy'
+    publishDir "${projectDir}/results/reoriented", mode: 'copy'
 
     input:
     tuple val(meta), path(assembly)

@@ -1,7 +1,6 @@
 process KAPTIVE_DB {
     tag "Verifying Kaptive database files"
-    publishDir "${params.kaptive_db}", mode: 'copy'
-    
+        
     label 'process_low'
 
     output:

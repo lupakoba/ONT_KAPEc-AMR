@@ -104,15 +104,17 @@ workflow assembly {
     QUAST(ch_quast_input)
 
     // ============================================================
-    // MLST Y UNIÓN (Ahora mucho más limpio)
+    // MLST 
     // ============================================================
-    // MLST emite ahora solo: [meta, tsv]
+    
     ch_mlst_results = MLST(ch_final_assemblies)
 
-    // El join ahora funciona directo porque ambos canales tienen 1 solo output
-    // Resultado: [meta, fasta, tsv]
     ch_joined_data = ch_final_assemblies.join(ch_mlst_results)
 
+    // ============================================================
+    // BAKTA
+    // ============================================================
+    BAKTA(ch_final_assemblies)
     // ============================================================
     // KAPTIVE_DB
     // ============================================================

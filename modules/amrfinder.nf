@@ -4,7 +4,7 @@ process AMRFINDERPLUS {
 
     label 'process_medium'
 
-    publishDir "${params.outdir}/amrfinderplus", mode: 'copy'
+    publishDir "${projectDir}/results/amrfinder", mode: 'copy'
 
     input:
     tuple val(meta), path(assembly), path(mlst_result)

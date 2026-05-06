@@ -4,9 +4,9 @@ process BAKTA {
 
     tag "Annotation for genome ${meta.id}"
 
-    publishDir "${params.outdir}/bakta", mode: 'copy'
+    publishDir "${projectDir}/results/bakta", mode: 'copy'
 
-    label 'process_high'
+    label 'process_medium'
 
     input:
     tuple val(meta), path(fasta)
