@@ -49,35 +49,58 @@ def workflows_map = [
 
 workflow {
 
+    // CANAL NANOPORE (Igual al que ya tienes)
     reads_ch = Channel.fromPath(params.samplesheet)
     .splitCsv(header: true)
     .map { row ->
-        // Construimos la ruta: data/barcode01 (por ejemplo)
-        def folder_path = "${params.reads_dir}/${row.folder_path}"
-        def folder = file(folder_path)
+        // Limpieza de datos del CSV
+        def sampleId  = row.sample.trim()
+        def subFolder = row.folder_path.trim()
         
-        if( !folder.isDirectory() ) {
-            error "ERROR: No se encuentra la carpeta en ${folder_path}"
+        // Construimos la ruta usando projectDir
+        // Esto asume que tus datos están en una carpeta 'data' dentro del proyecto
+        def folder_path = "${projectDir}/data/${subFolder}"
+        def folder = file(folder_path)
+
+        // Verificación de existencia de la carpeta
+        if( !folder.exists() ) {
+            error """
+            --- ERROR DE RUTA (projectDir) ---
+            Muestra: ${sampleId}
+            Ruta buscada: ${folder_path}
+            
+            Tip: Asegúrate de que la carpeta '${subFolder}' esté en: ${projectDir}/data/
+            """.stripIndent()
         }
 
+        // Búsqueda de archivos fastq.gz
         def fastq_files = file("${folder_path}/*.fastq.gz")
         
         if( fastq_files.size() == 0 ) {
-            error "ERROR: No hay archivos .fastq.gz en ${folder_path}"
+            error "ERROR: No se encontraron archivos .fastq.gz en: ${folder_path}"
         }
 
-        // Retornamos el objeto meta y la lista de archivos
-        return [ [id: row.sample, gsize: row.gsize], fastq_files ]
+        return [ [id: sampleId, gsize: row.gsize.trim()], fastq_files ]
     }
-
-
-
-
+    
     if (params.mode == 'assembly') {
         assembly(reads_ch)
-    }
+    } 
     else if (params.mode == 'hybrid') {
-        hybrid(reads_ch)
+        
+        // CANAL ILLUMINA
+        // Buscamos pares R1/R2 que coincidan con el ID de la muestra en el CSV
+        illumina_ch = Channel.fromFilePairs("${params.short_inputs}/*_R{1,2}.fastq.gz")
+            .map { id, files -> 
+                // Creamos un meta simple para el join posterior
+                return [ [id: id], files ] 
+            }
+
+        // Preparamos el archivo GSIZE como un canal de valor
+        ch_gsize_file = file(params.samplesheet)
+
+        // Llamamos al subworkflow híbrido (ajustado a los 3 inputs del diseño anterior)
+        hybrid(reads_ch, illumina_ch, ch_gsize_file)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
