@@ -6,5 +6,4 @@
 /db/*
 .singularity_cache/*
 *.tmp
-samplesheet.*
 @*
