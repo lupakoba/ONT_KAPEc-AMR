@@ -1,5 +1,5 @@
 process RACON {
-    tag "${meta.id} - R${iteration}"
+    tag "Consensus ${meta.id} - R${iteration}"
     label 'process_high'
 
     input:

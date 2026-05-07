@@ -49,27 +49,26 @@ def workflows_map = [
 
 workflow {
 
-    // CANAL NANOPORE (Igual al que ya tienes)
+    // NANOPORE CHANNEL
     reads_ch = Channel.fromPath(params.samplesheet)
     .splitCsv(header: true)
     .map { row ->
-        // Limpieza de datos del CSV
+        // CSV CLEAN-UP
         def sampleId  = row.sample.trim()
         def subFolder = row.folder_path.trim()
         
-        // Construimos la ruta usando projectDir
-        // Esto asume que tus datos están en una carpeta 'data' dentro del proyecto
+        // Route folder path for reads
         def folder_path = "${projectDir}/data/${subFolder}"
         def folder = file(folder_path)
 
-        // Verificación de existencia de la carpeta
+        // Veryfing if folder exists
         if( !folder.exists() ) {
             error """
-            --- ERROR DE RUTA (projectDir) ---
-            Muestra: ${sampleId}
-            Ruta buscada: ${folder_path}
+            --- ROUTE ERROR (projectDir) ---
+            Sample: ${sampleId}
+            Search path: ${folder_path}
             
-            Tip: Asegúrate de que la carpeta '${subFolder}' esté en: ${projectDir}/data/
+            Tip: Make sure that the folder '${subFolder}' is in: ${projectDir}/data/
             """.stripIndent()
         }
 
@@ -77,30 +76,53 @@ workflow {
         def fastq_files = file("${folder_path}/*.fastq.gz")
         
         if( fastq_files.size() == 0 ) {
-            error "ERROR: No se encontraron archivos .fastq.gz en: ${folder_path}"
+            error "ERROR: No .fastq.gz files found in: ${folder_path}"
         }
 
-        return [ [id: sampleId, gsize: row.gsize.trim()], fastq_files ]
+        def gsize = row.gsize?.trim()
+
+        if (!gsize) {
+            log.warn "No gsize provided for ${sampleId}, using default: ${params.genome_size}"
+            gsize = params.genome_size
+        }
+
+        return [ [id: sampleId, gsize: gsize], fastq_files ]
     }
     
     if (params.mode == 'assembly') {
         assembly(reads_ch)
     } 
     else if (params.mode == 'hybrid') {
-        
-        // CANAL ILLUMINA
-        // Buscamos pares R1/R2 que coincidan con el ID de la muestra en el CSV
-        illumina_ch = Channel.fromFilePairs("${params.short_inputs}/*_R{1,2}.fastq.gz")
-            .map { id, files -> 
-                // Creamos un meta simple para el join posterior
-                return [ [id: id], files ] 
+
+        // ILLUMINA CHANNEL
+        illumina_ch = Channel
+            .fromFilePairs("${params.short_inputs}/*_R{1,2}.fastq.gz")
+            .map { id, files ->
+
+                if (files.size() != 2) {
+                    error "Sample ${id} does not have exactly 2 paired-end files"
+                }
+
+                def sorted_files = files.sort { it.name }
+
+                return [ [id: id.trim()], sorted_files ]
             }
 
-        // Preparamos el archivo GSIZE como un canal de valor
-        ch_gsize_file = file(params.samplesheet)
+        // DEBUG 
+        reads_ch
+            .map { meta, files -> meta.id }
+            .view { "ONT IDs: $it" }
 
-        // Llamamos al subworkflow híbrido (ajustado a los 3 inputs del diseño anterior)
-        hybrid(reads_ch, illumina_ch, ch_gsize_file)
+        illumina_ch
+            .map { meta, files -> meta.id }
+            .view { "ILLUMINA IDs: $it" }
+
+
+        // ============================================================
+        // HYBRID CALL (UPDATED)
+        // ============================================================
+
+        hybrid(reads_ch, illumina_ch)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

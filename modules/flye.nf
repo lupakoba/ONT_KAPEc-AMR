@@ -1,5 +1,5 @@
 process FLYE {
-    tag "${meta.id}"
+    tag "De novo assembly ${meta.id}"
     label 'process_high'
         
     publishDir "${projectDir}/results/flye", mode: 'copy'

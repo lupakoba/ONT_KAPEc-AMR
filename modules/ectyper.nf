@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process ECTYPER {
 
-    tag "Serotyping for genome ${meta.id}"
+    tag "Serotyping ${meta.id}"
 
     label 'process_low'
 

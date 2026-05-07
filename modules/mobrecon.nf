@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process MOB_RECON {
 
-    tag "Plasmid inference for genome ${meta.id}"
+    tag "Mobile element inference for ${meta.id}"
 
     publishDir "${projectDir}/results/mob_recon", mode: 'copy'
 

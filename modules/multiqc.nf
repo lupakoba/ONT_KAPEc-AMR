@@ -1,4 +1,5 @@
 process MULTIQC {
+
     tag "Joining FastQC reports"
 
     publishDir "${projectDir}/results/multiqc", mode: 'copy'
@@ -6,7 +7,6 @@ process MULTIQC {
     label 'process_low'
 
     input:
-    // Recibe una lista de todos los archivos .zip de FastQC
     path qc_files
 
     output:

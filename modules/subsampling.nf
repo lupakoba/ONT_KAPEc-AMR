@@ -1,18 +1,17 @@
 process SUBSAMPLING {
-    tag "${meta.id}" // Cambiado de sample_id a meta.id
+    tag "Subsampling ${meta.id}" 
     label 'process_medium'
 
     publishDir "${projectDir}/results/subsampling", mode: 'copy'
 
     input:
-    // Ahora recibe el objeto meta completo que contiene el gsize del CSV
     tuple val(meta), path(reads), path(stats_file)
 
     output:
     tuple val(meta), path("${meta.id}.processed.fastq.gz")
 
     script:
-    // Definimos una variable local para el script por si gsize no viene en el meta
+
     def gsize = meta.gsize ?: params.genome_size
     
     """

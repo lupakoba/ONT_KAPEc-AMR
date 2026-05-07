@@ -1,6 +1,6 @@
 process FILTLONG {
     // Usamos meta.id para el tag
-    tag "${meta.id}"
+    tag "Filtering ${meta.id}"
 
     publishDir "${projectDir}/results/filtlong", mode: 'copy'
 

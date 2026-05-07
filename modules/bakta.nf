@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process BAKTA {
 
-    tag "Annotation for genome ${meta.id}"
+    tag "Annotation for ${meta.id}"
 
     publishDir "${projectDir}/results/bakta", mode: 'copy'
 

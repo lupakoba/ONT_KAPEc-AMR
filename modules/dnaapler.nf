@@ -1,5 +1,5 @@
 process DNAAPLER {
-    tag "${meta.id}"
+    tag "Reordering ${meta.id}"
     label 'process_medium'
     
     publishDir "${projectDir}/results/reoriented", mode: 'copy'

@@ -1,102 +1,196 @@
 nextflow.enable.dsl=2
 
 /* -----------------------------------------------------------
-    IMPORTACIÓN DE MÓDULOS
+    IMPORTACIÓN DE MÓDULOS (Sin cambios)
 ----------------------------------------------------------- */
-// Nanopore
-include { CAT_READS }                    from '../modules/cat'
-include { NANOPLOT as NANOPLOT_RAW }     from '../modules/nanoplot'
-include { FILTLONG }                     from '../modules/filtlong'
-include { PORECHOP }                     from '../modules/porechop'
-include { NANOPLOT as NANOPLOT_POST }    from '../modules/nanoplot'
-include { NANOCOMP as NANOCOMP_TRIM }    from '../modules/nanocomp'
-include { NANOCOMP as NANOCOMP_SUBS }    from '../modules/nanocomp'
-include { SEQKIT_STATS }                 from '../modules/seqkit'
-include { SUBSAMPLING }                  from '../modules/subsampling'
+include { CAT_READS }                   from '../modules/cat'
+include { NANOPLOT as RAW_QC }          from '../modules/nanoplot'
+include { FILTLONG }                    from '../modules/filtlong'
+include { PORECHOP }                    from '../modules/porechop'
+include { NANOPLOT as POST_QC }         from '../modules/nanoplot'
+include { NANOCOMP as NANOCOMP_TRIM }   from '../modules/nanocomp'
+include { NANOCOMP as NANOCOMP_SUBS }   from '../modules/nanocomp'
+include { SEQKIT_STATS }                from '../modules/seqkit'
+include { SUBSAMPLING }                 from '../modules/subsampling'
+include { FASTQC as FASTQC_RAW }        from '../modules/fastqc'
+include { FASTP }                       from '../modules/fastp'
+include { FASTQC as FASTQC_TRIM }       from '../modules/fastqc'
+include { MULTIQC }                     from '../modules/multiqc'
+include { UNICYCLER }                   from '../modules/unicycler'
+include { DNAAPLER }                    from '../modules/dnaapler'
+include { QUAST }                       from '../modules/quast'
+include { MLST }                        from '../modules/mlst'
+include { BAKTA }                       from '../modules/bakta'
+include { CHECKM2 }                     from '../modules/checkm2'
+include { KAPTIVE_DB }                  from '../modules/kaptive_db'
+include { KAPTIVE }                     from '../modules/kaptive'
+include { ECTYPER }                     from '../modules/ectyper'
+include { PASTY }                       from '../modules/pasty'
+include { MOB_RECON }                   from '../modules/mobrecon'
+include { ABRICATE_DB }                 from '../modules/abricate_db'
+include { ABRICATE_VF }                 from '../modules/virulence'
+include { AMRFINDERPLUS }               from '../modules/amrfinder'
 
-// Illumina
-include { FASTQC as FASTQC_RAW }         from '../modules/fastqc'
-include { FASTP }                        from '../modules/fastp'
-include { FASTQC as FASTQC_TRIMMED }     from '../modules/fastqc'
-include { MULTIQC }    from '../modules/multiqc'
-
-// Assembly & Sorting
-include { UNICYCLER }                    from '../modules/unicycler'
-include { DNAAPLER }                     from '../modules/dnaapler'
-include { QUAST }                        from '../modules/quast'
 
 workflow hybrid {
 
     take:
-    ont_ch       // [ [id:sample, gsize:gsize], [fastqs] ]
-    illumina_ch  // [ [id:sample], [R1, R2] ]
-    gsize_csv     // [ [id:sample, gsize] ]
+        ont_ch
+        illumina_ch
 
     main:
 
     // ============================================================
-    // 1. FLUJO NANOPORE (Tu estructura original)
+    // 1. NANOPORE PIPELINE
     // ============================================================
-    cat_out = CAT_READS(ont_reads_ch)
-    NANOPLOT_RAW(cat_out, "raw")
+
+    
+    cat_out = CAT_READS(ont_ch)
+
+    
+    RAW_QC( cat_out, "raw" )
 
     filt_out = FILTLONG(cat_out)
     pore_out = PORECHOP(filt_out)
-    NANOPLOT_POST(pore_out, "post_trim")
 
-    // QC Comparativo de recortes
-    raw_files = pore_out.map { it[1] }.collect()
-    NANOCOMP_TRIM(raw_files, "trimmed")
+    POST_QC( pore_out, "post_trim" )
 
-    // Stats y Subsampling con GSize
-    stats_out = SEQKIT_STATS(pore_out)
-    subs_branch = SUBSAMPLING(stats_out, gsize_csv)
-
-    // QC Comparativo de subsampling
-    subs_files = subs_branch.map { it[1] }.collect()
-    NANOCOMP_SUBS(subs_files, "subsampled")
-
-    // ============================================================
-    // 2. FLUJO ILLUMINA (Estructura solicitada)
-    // ============================================================
     
-    // FastQC inicial
-    fastqc_raw_result = FASTQC_RAW(illumina_ch, "raw")
+    NANOCOMP_TRIM(
+        pore_out.map { it -> it[1] }.collect(), 
+        "trimmed"
+    )
 
-    // Trimming con Fastp
+    stats_out = SEQKIT_STATS(pore_out)
+
+    
+    subs_branch = SUBSAMPLING(stats_out)
+
+    NANOCOMP_SUBS(
+        subs_branch.map { it -> it[1] }.collect(), 
+        "subsampled"
+    )
+
+    // ============================================================
+    // 2. ILLUMINA PIPELINE
+    // ============================================================
+
+    
+    fastqc_raw_in = illumina_ch.map { it -> 
+        def new_meta = it[0].clone()
+        new_meta.stage = 'raw'
+        return [ new_meta, it[1] ]
+    }
+    fastqc_raw = FASTQC_RAW(fastqc_raw_in)
+
     fastp_result = FASTP(illumina_ch)
 
-    // FastQC post-trimming
-    fastqc_trimmed_result = FASTQC_TRIMMED(fastp_result.trimmed_reads, "trimmed")
+    fastqc_trim_in = fastp_result.trimmed_reads.map { it ->
+        def new_meta = it[0].clone()
+        new_meta.stage = 'trimmed'
+        return [ new_meta, it[1] ]
+    }
+    fastqc_trim = FASTQC_TRIM(fastqc_trim_in)
 
-    // Reporte MultiQC para Illumina
-    multiqc_input = fastqc_raw_result.zip
-        .mix(fastqc_trimmed_result.zip)
-        .collect()
     
+    multiqc_input = fastqc_raw.zip
+        .mix(fastqc_trim.zip)
+        .map { meta, file -> file }
+        .collect()
+
     MULTIQC(multiqc_input)
 
+
+
     // ============================================================
-    // 3. ENSAMBLAJE HÍBRIDO Y REORIENTACIÓN
+    // 3. JOIN
+    // ============================================================
+
+    
+    hybrid_input = subs_branch
+        .map { it -> [ it[0].id, it[0], it[1] ] } 
+        .join(
+            fastp_result.trimmed_reads.map { it -> [ it[0].id, it[1] ] } 
+        )
+        .map { it -> 
+            
+            def r1 = it[3][0]
+            def r2 = it[3][1]
+            return [ it[1], it[2], r1, r2 ]
+        }
+
+    // ============================================================
+    // 4. ASSEMBLY + POST-PROCESSING
+    // ============================================================
+
+    unicycler_out = UNICYCLER(hybrid_input)
+
+    
+    dnaapler_out = DNAAPLER(unicycler_out.fasta)
+    ch_reoriented = dnaapler_out.reoriented
+
+    
+    quast_input = ch_reoriented.map { it[1] }.collect()
+
+    QUAST(quast_input)
+
+    // ============================================================
+    // MLST 
     // ============================================================
     
-    // Sincronización de canales: [meta, [R1, R2], long_reads]
-    ch_unicycler_in = fastp_out.trimmed_reads.join(subs_branch)
+    ch_mlst_results = MLST(ch_reoriented)
 
-    unicycler_out = UNICYCLER(ch_unicycler_in)
+    ch_joined_data = ch_reoriented.join(ch_mlst_results)
 
-    // Reorientación con Dnaapler
-    // Emite el canal .reoriented que ya usas en assembly.nf
-    ch_final_assemblies = DNAAPLER(unicycler_out.assembly).reoriented 
+    // ============================================================
+    // BAKTA
+    // ============================================================
 
-    // QUAST Final para todos los ensambles reorientados
-    ch_final_assemblies
-        .map { it[1] }
-        .collect()
-        .set { ch_quast_input }
+    BAKTA(ch_reoriented)
+
+    // ============================================================
+    // CHECKM2
+    // ============================================================
+    CHECKM2(ch_reoriented)
+
+    // ============================================================
+    // KAPTIVE_DB
+    // ============================================================
     
-    QUAST(ch_quast_input)
+    ch_kaptive_db_raw = KAPTIVE_DB()
+    
+    
+    ch_kaptive_db = ch_kaptive_db_raw.collect()
 
-    emit:
-    assembly = ch_final_assemblies
+    
+    KAPTIVE(ch_joined_data, ch_kaptive_db)
+
+    // ============================================================
+    // AMRFINDERPLUS / ECTYPER / PASTY
+    // ============================================================
+    
+    AMRFINDERPLUS(ch_joined_data)
+    ECTYPER(ch_joined_data)
+    PASTY(ch_joined_data)
+
+    // ============================================================
+    // MOB RECON Y ABRICATE
+    // ============================================================
+    
+    MOB_RECON(ch_reoriented)
+
+    
+    // ABRICATE
+    // ============================================================
+    ch_abricate_db = ABRICATE_DB().collect() 
+    
+    
+    ch_reoriented       
+        .combine(ch_abricate_db)
+        .set { ch_abricate_input }
+
+    
+    ABRICATE_VF(ch_abricate_input)
+
+    
 }

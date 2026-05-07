@@ -1,5 +1,5 @@
 process KAPTIVE {
-    tag "Capsular Loci inference for genome ${meta.id}"
+    tag "KL/OCL inference for ${meta.id}"
     label 'process_medium'
 
     publishDir "${projectDir}/results/kaptive", mode: 'copy'

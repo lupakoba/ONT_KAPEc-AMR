@@ -1,5 +1,5 @@
 process MEDAKA {
-    tag "${meta.id}"
+    tag "Building consensus for ${meta.id}"
     label 'process_high'
 
     input:

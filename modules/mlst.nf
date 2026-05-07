@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process MLST {
 
-    tag "MLST typing for genome ${meta.id}"
+    tag "MLST typing for ${meta.id}"
 
     label 'process_low'
 

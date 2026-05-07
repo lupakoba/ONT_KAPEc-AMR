@@ -1,6 +1,6 @@
 process FASTP {
     // Usamos meta.id para que el rastreo sea consistente con los otros procesos
-    tag "Trimming for sample ${meta.id}"
+    tag "Trimming ${meta.id}"
 
     publishDir "${projectDir}/results/fastp", mode: 'copy'
 

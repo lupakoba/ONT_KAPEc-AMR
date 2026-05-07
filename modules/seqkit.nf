@@ -1,5 +1,5 @@
 process SEQKIT_STATS {
-    tag "${meta.id}"
+    tag "Stats for subsampling: ${meta.id}"
     label 'process_low'
 
     input:

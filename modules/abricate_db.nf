@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process ABRICATE_DB {
 
-    tag "Preparing ABRICATE database"
+    tag "Preparing ABRICATE db"
 
     label 'process_medium'
 

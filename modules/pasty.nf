@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 process PASTY {
 
-    tag "Serotyping for genome ${meta.id}"
+    tag "Serotyping for ${meta.id}"
 
     label 'process_low'
 

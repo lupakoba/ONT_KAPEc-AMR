@@ -1,5 +1,5 @@
 process CHECKM2 {
-    tag "CheckM2: ${meta.id}"
+    tag "CheckM2 assessment: ${meta.id}"
     label 'process_high'
 
     publishDir "${projectDir}/results/checkm2", mode: 'copy'

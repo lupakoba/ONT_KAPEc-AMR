@@ -1,6 +1,6 @@
 process QUAST {
     label 'process_medium'
-    tag "All Samples"
+    tag "Joint Assembly QC"
     
     // Guardamos todo en una sola carpeta de resultados
     publishDir "${projectDir}/results/quast_summary", mode: 'copy'

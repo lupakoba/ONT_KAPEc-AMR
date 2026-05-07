@@ -1,6 +1,6 @@
 process AMRFINDERPLUS {
 
-    tag "Prediction of AMR determinants for genome ${meta.id}"
+    tag "AMR determinants for ${meta.id}"
 
     label 'process_medium'
 

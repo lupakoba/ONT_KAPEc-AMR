@@ -1,5 +1,5 @@
 process KAPTIVE_DB {
-    tag "Verifying Kaptive database files"
+    tag "Verifying Kaptive db"
         
     label 'process_low'
 

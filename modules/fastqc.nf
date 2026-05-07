@@ -1,15 +1,13 @@
 process FASTQC {
-    tag "QC ${type} for sample: ${meta.id}"
 
-    // La carpeta de salida cambiará según el valor de 'type' (raw o trimmed)
-    publishDir "${projectDir}/results/fastqc/${type}", mode: 'copy'
+    tag "Read QC ${meta.id} (${meta.stage ?: 'raw'})"
+
+    publishDir "${projectDir}/results/fastqc/${meta.stage ?: 'raw'}", mode: 'copy'
 
     label 'process_low'
 
     input:
-    // Recibe el meta, las reads y un valor (String) para diferenciar el momento del QC
     tuple val(meta), path(reads)
-    val type
 
     output:
     tuple val(meta), path("*.html"), emit: html
