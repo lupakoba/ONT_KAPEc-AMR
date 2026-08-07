@@ -63,16 +63,21 @@ The expected route for the bakta database is: KAPEc-AMR(repo name)/db/bakta_db/d
 
 Kaptive Database: You must provide the .gbk files for K/O loci of both Klebsiella and Acinetobacter for Kaptive. You can find them on github (https://github.com/klebgenomics/Kaptive/tree/master/src/kaptive/data), and download them to /db/kaptive_db. The Kaptive_db module will print an error if the files with exact names as expected are not found.
 
-....................................................................................................................
+---
 
-OPTIONS
+## OPTIONS
 
--profile    You can state whether the run would be in a single computer (-profile docker)
-            or on a HPC compatible with Singularity (-profile singularity), in both cases 
-            local executor is used. A third option is included for SLURM schelduler 
-            (-profile singularity_slurm) but have not been tested yet.
+`-profile` — indica si la corrida es en una sola computadora o en un HPC:
 
+```
+-profile docker              single computer, local executor
+-profile singularity         HPC compatible with Singularity, local executor
+-profile singularity_slurm   HPC with SLURM scheduler (not tested yet)
+```
 
+### Estructura esperada de `data/`
+
+```
 data/
 ├── barcode01/              <-- Carpeta ONT (lo que pongas en 'folder_path' del CSV)
 │   └── sample01_ONT.fastq.gz
@@ -82,9 +87,9 @@ data/
 ├── sample01_R2.fastq.gz
 ├── sample02_R1.fastq.gz
 └── sample02_R2.fastq.gz
+```
 
 
-..........................
 
 ## Acknowledgments
 
