@@ -41,8 +41,8 @@ Pipeline pre-requisites:
     Nextflow (v. 25.10.0) or higher, since pipeline is written in DSL2.
     Docker/Singularity as container support
     Java 17 or higher.
-    Databases for Kraken2, Checkm2, Bakta and Kaptive (see below)
-Kraken2 database: You must provide a database, either by downloading and extracting a pre-built database from AWS repository (https://benlangmead.github.io/aws-indexes/k2) or build it with kraken2 commands if pre-installed. When cloning the repository, you should make an empty KAPEc-AMR(repo name)/db/kraken_db directory, where the database must be downloaded/compiled. Remember that the bare minimum files are hash.k2d, opts.k2d and taxo.k2d !!!
+    Databases for Checkm2, Bakta and Kaptive (see below)
+
 
 Checkm2 database: You must provide a Checkm2 database. You can download it from Zenodo database (https://zenodo.org/records/14897628) or built it with Checkm2 commands if pre-installed. It is expected to be inside db/checkm2. The route should be KAPEc-AMR(repo name)/db/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd (database file).
 
