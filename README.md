@@ -59,7 +59,7 @@ singularity exec \
     amrfinder_update \
     --force_update \
     --database /data/amrfinderplus-db
-The expected route for the bakta database is: KAPEc-AMR(repo name)/db/bakta_db/db-light. Inside this directory should be the database files for bakta and the internal amrfinderplus database directory (also for Bakta).
+The expected route for the bakta database is: ONT_KAPEc-AMR(repo name)/db/bakta_db/db-light. Inside this directory should be the database files for bakta and the internal amrfinderplus database directory (also for Bakta).
 
 Kaptive Database: You must provide the .gbk files for K/O loci of both Klebsiella and Acinetobacter for Kaptive. You can find them on github (https://github.com/klebgenomics/Kaptive/tree/master/src/kaptive/data), and download them to /db/kaptive_db. The Kaptive_db module will print an error if the files with exact names as expected are not found.
 
