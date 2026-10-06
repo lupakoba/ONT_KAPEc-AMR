@@ -6,7 +6,7 @@ process BAKTA {
 
     publishDir "${projectDir}/results/bakta", mode: 'copy'
 
-    label 'process_medium'
+    label 'process_high'
 
     input:
     tuple val(meta), path(fasta)
@@ -34,7 +34,10 @@ process BAKTA {
         --prefix ${meta.id} \\
         --tmp-dir \$PWD/tmp_bakta \\
         --locus-tag ${meta.id} \\
+        --skip-ncrna \\
+        --skip-ncrna-region \\
         --skip-plot \\
+        --threads 4 \\
         --keep-contig-headers \\
         ${fasta}
 
